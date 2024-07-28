@@ -1,0 +1,20 @@
+{
+  "name": "yaka",
+  "version": "1.0.0",
+  "main": "volume.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@ankr.com/ankr.js": "^0.5.1",
+    "axios": "^1.7.2",
+    "colors": "^1.4.0",
+    "dotenv": "^16.4.5",
+    "ethers": "^5.7.2",
+    "web3": "^1.10.4"
+  }
+}
