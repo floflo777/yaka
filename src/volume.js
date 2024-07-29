@@ -1,9 +1,30 @@
 const ethers = require("ethers");
+const fs = require("fs");
+const csv = require("csv-parser");
+
+const loadCSV = async (filePath, keyColumn, valueColumn) => {
+  const data = {};
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("data", (row) => {
+        if (row[keyColumn] && row[valueColumn]) {
+          data[row[keyColumn].toLowerCase()] = parseFloat(row[valueColumn]);
+        }
+      })
+      .on("end", () => {
+        resolve(data);
+      })
+      .on("error", (error) => {
+        reject(error);
+      });
+  });
+};
 
 (async () => {
   const provider = new ethers.providers.JsonRpcProvider('https://evm-rpc.sei-apis.com');
   const contractAddress = "0x9f3B1c6b0CDDfE7ADAdd7aadf72273b38eFF0ebC";
-  const startBlock = 91000000;
+  const startBlock = 92557870;
   const currentBlock = await provider.getBlockNumber();
   const rateLimit = 10000;
 
@@ -33,14 +54,34 @@ const ethers = require("ethers");
 
   const formatWithDecimals = (amount, decimals) => ethers.utils.formatUnits(amount, decimals);
 
+  const tokenPrices = await loadCSV("token_prices.csv", "address", "price");
+  const userRankings = await loadCSV("user_rankings.csv", "address", "boost");
+
+  const getTokenPrice = (tokenAddress) => {
+    return tokenPrices[tokenAddress.toLowerCase()] || 0;
+  };
+
+  const getUserBoost = (userAddress) => {
+    return userRankings[userAddress.toLowerCase()] || 0;
+  };
+
   const transactionsAggregated = {};
 
-  const aggregateTransactions = (date, tokenAddress, tokenSymbol, amountIn, decimals) => {
+  const aggregateTransactions = (date, userAddress, tokenAddress, tokenSymbol, amountIn, decimals) => {
     const formattedAmount = parseFloat(formatWithDecimals(amountIn, decimals));
+    const tokenPrice = getTokenPrice(tokenAddress);
+    const volumeInDollars = formattedAmount * tokenPrice;
+    const userBoost = getUserBoost(userAddress);
+    const weightedVolume = volumeInDollars * (1 + userBoost);
+
     if (!transactionsAggregated[date]) transactionsAggregated[date] = {};
-    if (!transactionsAggregated[date][tokenAddress]) transactionsAggregated[date][tokenAddress] = { symbol: tokenSymbol, totalAmount: 0 };
+    if (!transactionsAggregated[date][tokenAddress]) {
+      transactionsAggregated[date][tokenAddress] = { symbol: tokenSymbol, totalAmount: 0, totalVolume: 0, weightedVolume: 0 };
+    }
     transactionsAggregated[date][tokenAddress].totalAmount += formattedAmount;
-    console.log(transactionsAggregated)
+    transactionsAggregated[date][tokenAddress].totalVolume += volumeInDollars;
+    transactionsAggregated[date][tokenAddress].weightedVolume += weightedVolume;
+    console.log(transactionsAggregated);
   };
 
   const getTransactions = async (blockNumber) => {
@@ -64,7 +105,7 @@ const ethers = require("ethers");
   
             for (const [tokenA, ,] of path) {
               const { decimals, symbol } = await getTokenDetails(tokenA);
-              aggregateTransactions(blockDate, tokenA, symbol, amountIn, decimals);
+              aggregateTransactions(blockDate, tx.from, tokenA, symbol, amountIn, decimals);
             }
           }
         } catch (error) {
@@ -83,4 +124,3 @@ const ethers = require("ethers");
 
   console.log(transactionsAggregated);
 })();
-

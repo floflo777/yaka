@@ -14,9 +14,13 @@
     "@cosmjs/launchpad": "^0.27.1",
     "@sei-js/cosmjs": "^1.0.7",
     "axios": "^1.7.2",
+    "cheerio": "^1.0.0-rc.12",
     "colors": "^1.4.0",
+    "csv-parser": "^3.0.0",
     "dotenv": "^16.4.5",
     "ethers": "^5.7.2",
+    "json2csv": "^6.0.0-alpha.2",
+    "puppeteer": "^22.14.0",
     "web3": "^1.10.4"
   }
 }
