@@ -105,11 +105,10 @@ const getTransactions = async (provider, startBlock, endBlock, contractAddress, 
 
 (async () => {
   const contractAddress = "0x9f3B1c6b0CDDfE7ADAdd7aadf72273b38eFF0ebC";
-  const startBlock = 92681355;
+  const startBlock = 92850000;
   const currentBlock = await (new ethers.providers.JsonRpcProvider('https://evm-rpc.sei-apis.com')).getBlockNumber();
-  const rateLimit = 10000;
+  const rateLimit = 92741296;
   const providerUrls = [
-    //'https://restless-rough-grass.sei-pacific.quiknode.pro/88cea2e357b4121424c72cd5d5dcd5f56f53bb01/',
     'https://evm-rpc.sei-apis.com'
   ];
 
